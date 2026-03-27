@@ -3,15 +3,33 @@ import requests
 import hashlib
 
 janela = tk.Tk()
+janela.eval('tk::PlaceWindow . center')
 janela.title("Minha senha foi vazada?")
 janela.geometry("700x500")
-label = tk.Label(janela, text="Digite sua senha abaixo para verificar se sua senha foi vazada", font=("Arial", 14))
-label.pack()
-entrada = tk.Entry(janela, width=30)
+janela.configure(bg="#1e1e1e")
+
+label = tk.Label(
+    janela,
+    text="Digite sua senha abaixo",
+    font=("Arial", 14),
+    bg="#1e1e1e",
+    fg="white"
+)
+label = tk.Label(janela, text="Digite sua senha abaixo para verificar se foi vazada", font=("Arial", 14))
+label.pack(pady=20)
+
+entrada = tk.Entry(janela, width=30, show="*", font=("Arial", 12))
 entrada.pack(pady=10)
 
+resultado = tk.Label(janela, text="", font=("Arial", 12), bg="#1e1e1e", fg="white")
+resultado.pack(pady=20)
+
 def mostrar_texto():
+    resultado.config(text="")
     senha = entrada.get()  
+    if senha == "":
+        resultado.config(text="Digite uma senha!")
+        return
     sha1_hash = hashlib.sha1()
     sha1_hash.update(senha.encode('utf-8'))
     hash_value = sha1_hash.hexdigest()
@@ -19,7 +37,15 @@ def mostrar_texto():
     prefixo = hash_value[:5]
     sufixo = hash_value[5:].upper()
 
-    resposta = requests.get(f"https://api.pwnedpasswords.com/range/{prefixo}")
+    resultado.config(text="Verificando...")
+    janela.update()
+
+    try:
+        resposta = requests.get(f"https://api.pwnedpasswords.com/range/{prefixo}")
+    except:
+        resultado.config(text="Erro ao conectar com a API", fg="orange")
+        return
+
 
     for linha in resposta.text.splitlines():
         partes = linha.split(':')
@@ -27,15 +53,21 @@ def mostrar_texto():
         quantidade = partes[1]
 
         if hash_linha == sufixo:
-            resultado.config(text=f"Senha vazada {quantidade} vezes!")
+            resultado.config(text=f"Senha vazada {quantidade} vezes!", fg="red")
             break
     else:
-        resultado.config(text="Senha nao encontrada!")
+        resultado.config(text="Senha nao encontrada!", fg="lightgreen")
 
-resultado = tk.Label(janela, text="")
-resultado.pack()
-
-
-botao = tk.Button(janela, text="Enviar", command=mostrar_texto)
-botao.pack()
+botao = tk.Button(
+    janela,
+    text="Verificar",
+    command=mostrar_texto,
+    bg="#4CAF50",
+    fg="white",
+    font=("Arial", 12),
+    padx=10,
+    pady=5,
+    bd=0
+)
+botao.pack(pady=10)
 janela.mainloop()
