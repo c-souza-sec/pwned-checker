@@ -56,6 +56,7 @@ Evite utilizar senhas reais ou sensíveis durante os testes.
 
 ```
 ├── interface.py
+├── pwned-checker.py
 ├── requirements.txt
 └── README.md
 ```
